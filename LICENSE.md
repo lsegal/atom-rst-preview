@@ -1,4 +1,7 @@
-Copyright (c) 2014 GitHub Inc.
+This is a derivative work of markdown-preview (http://github.com/atom/markdown-preview),
+Copyright (c) 2014 GitHub Inc. and licensed under the MIT license.
+
+Modifications Copyright (c) 2014 Loren Segal
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the

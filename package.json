@@ -1,9 +1,9 @@
 {
-  "name": "markdown-preview",
-  "version": "0.44.0",
-  "main": "./lib/markdown-preview",
-  "description": "Open a rendered version of the Markdown in the current editor with `ctrl-shift-m`.",
-  "repository": "https://github.com/atom/markdown-preview",
+  "name": "rst-preview",
+  "version": "1.0.0",
+  "main": "./lib/rst-preview",
+  "description": "Open a rendered version of the ReStructuredText in the current editor with `ctrl-shift-r`.",
+  "repository": "https://github.com/lsegal/atom-rst-preview",
   "license": "MIT",
   "engines": {
     "atom": "*"
@@ -11,7 +11,6 @@
   "dependencies": {
     "fs-plus": "2.x",
     "pathwatcher": "0.16.0",
-    "roaster": ">=1.0.3 <2.0",
     "temp": "0.6.x",
     "underscore-plus": "1.x",
     "wrench": "1.5.x"

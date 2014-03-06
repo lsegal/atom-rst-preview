@@ -1,7 +1,8 @@
 @import "syntax-variables";
+@import "ui-variables";
 
 @font-family: "Helvetica Neue", Helvetica, sans-serif;
-.markdown-preview {
+.rst-preview {
   font-family: @font-family;
   font-size: 14px;
   line-height: 1.6;
@@ -15,7 +16,7 @@
   }
 }
 
-.markdown-spinner {
+.rst-spinner {
   margin: auto;
   background-image: url(images/octocat-spinner-128.gif);
   background-repeat: no-repeat;
@@ -25,10 +26,10 @@
   text-align: center;
 }
 
-// This is styling for generic markdownized text. Anything you put in a
-// container with .markdown-preview on it should render generally well. It also
-// includes some GitHub Flavored Markdown specific styling (like @mentions)
-.markdown-preview {
+// This is styling for generic rstized text. Anything you put in a
+// container with .rst-preview on it should render generally well. It also
+// includes some GitHub Flavored Rst specific styling (like @mentions)
+.rst-preview {
   pre,
   pre div.editor,
   code,
@@ -409,8 +410,8 @@
   }
 
   pre.editor-colors {
-    background: @syntax-background-color;
-    border: 1px solid darken(@syntax-background-color, 10%);
+    background: #eee;
+    border: 1px solid darken(#eee, 10%);
   }
 
   pre code, pre tt {

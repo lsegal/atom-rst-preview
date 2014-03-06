@@ -1,10 +1,10 @@
 'menu': [
   'label': 'Packages'
   'submenu': [
-    'label': 'Markdown'
+    'label': 'ReStructuredText'
     'submenu': [
       'label': 'Preview Buffer'
-      'command': 'markdown-preview:show'
+      'command': 'rst-preview:show'
     ]
   ]
 ]

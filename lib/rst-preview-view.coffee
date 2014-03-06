@@ -5,18 +5,24 @@ _ = require 'underscore-plus'
 {extensionForFenceName} = require './extension-helper'
 
 module.exports =
-class MarkdownPreviewView extends ScrollView
+class RstPreviewView extends ScrollView
   atom.deserializers.add(this)
 
   @deserialize: (state) ->
-    new MarkdownPreviewView(state)
+    new RstPreviewView(state)
 
   @content: ->
-    @div class: 'markdown-preview native-key-bindings', tabindex: -1
+    @div class: 'rst-preview native-key-bindings', tabindex: -1, =>
+      @div class: 'buffer-1'
+      @div class: 'buffer-2'
 
   constructor: ({@editorId, filePath}) ->
     super
 
+    @buffer1 = @find('.buffer-1')
+    @buffer2 = @find('.buffer-2')
+    @buffer1.show()
+    @buffer2.hide()
     if @editorId?
       @resolveEditor(@editorId)
     else
@@ -24,7 +30,7 @@ class MarkdownPreviewView extends ScrollView
       @handleEvents()
 
   serialize: ->
-    deserializer: 'MarkdownPreviewView'
+    deserializer: 'RstPreviewView'
     filePath: @getPath()
     editorId: @editorId
 
@@ -42,7 +48,7 @@ class MarkdownPreviewView extends ScrollView
     else
       atom.packages.once 'activated', =>
         resolve()
-        @renderMarkdown()
+        @renderRst()
 
   editorForId: (editorId) ->
     for editor in atom.workspace.getEditors()
@@ -50,12 +56,12 @@ class MarkdownPreviewView extends ScrollView
     null
 
   handleEvents: ->
-    @subscribe atom.syntax, 'grammar-added grammar-updated', _.debounce((=> @renderMarkdown()), 250)
+    @subscribe atom.syntax, 'grammar-added grammar-updated', _.debounce((=> @renderRst()), 250)
     @subscribe this, 'core:move-up', => @scrollUp()
     @subscribe this, 'core:move-down', => @scrollDown()
 
     changeHandler = =>
-      @renderMarkdown()
+      @renderRst()
       pane = atom.workspace.paneForUri(@getUri())
       if pane? and pane isnt atom.workspace.getActivePane()
         pane.activateItem(this)
@@ -65,21 +71,29 @@ class MarkdownPreviewView extends ScrollView
     else if @editor?
       @subscribe(@editor.getBuffer(), 'contents-modified', changeHandler)
 
-  renderMarkdown: ->
+  renderRst: ->
     @showLoading()
     if @file?
-      @file.read().then (contents) => @renderMarkdownText(contents)
+      @file.read().then (contents) => @renderRstText(contents)
     else if @editor?
-      @renderMarkdownText(@editor.getText())
+      @renderRstText(@editor.getText())
 
-  renderMarkdownText: (text) ->
-    roaster = require 'roaster'
-    sanitize = true
-    roaster text, {sanitize}, (error, html) =>
-      if error
-        @showError(error)
+  renderRstText: (text) ->
+    textBuffer = []
+    spawn = require('child_process').spawn
+    child = spawn('pandoc', ['--from', 'rst', '--to', 'html'])
+    child.stdout.on 'data', (data) => textBuffer.push(data.toString())
+    child.stdout.on 'close', =>
+      [buffer, altBuffer] = []
+      if @buffer1.isVisible()
+        [buffer, altBuffer] = [@buffer2, @buffer1]
       else
-        @html(@tokenizeCodeBlocks(@resolveImagePaths(html)))
+        [buffer, altBuffer] = [@buffer1, @buffer2]
+      html = @resolveImagePaths(@tokenizeCodeBlocks(textBuffer.join('\n')))
+      buffer.html(html).show()
+      altBuffer.hide()
+    child.stdin.write(text)
+    child.stdin.end()
 
   getTitle: ->
     if @file?
@@ -87,13 +101,13 @@ class MarkdownPreviewView extends ScrollView
     else if @editor?
       "#{@editor.getTitle()} Preview"
     else
-      "Markdown Preview"
+      "Rst Preview"
 
   getUri: ->
     if @file?
-      "markdown-preview://#{@getPath()}"
+      "rst-preview://#{@getPath()}"
     else
-      "markdown-preview://editor/#{@editorId}"
+      "rst-preview://editor/#{@editorId}"
 
   getPath: ->
     if @file?
@@ -104,13 +118,17 @@ class MarkdownPreviewView extends ScrollView
   showError: (result) ->
     failureMessage = result?.message
 
-    @html $$$ ->
-      @h2 'Previewing Markdown Failed'
+    @buffer1.show()
+    @buffer2.hide()
+    @buffer1.html $$$ ->
+      @h2 'Previewing Failed'
       @h3 failureMessage if failureMessage?
 
   showLoading: ->
-    @html $$$ ->
-      @div class: 'markdown-spinner', 'Loading Markdown\u2026'
+    @buffer1.show()
+    @buffer2.hide()
+    @buffer1.html $$$ ->
+      @div class: 'rst-spinner', 'Loading ReStructuredText\u2026'
 
   resolveImagePaths: (html) =>
     html = $(html)
