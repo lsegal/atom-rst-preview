@@ -13,16 +13,10 @@ class RstPreviewView extends ScrollView
 
   @content: ->
     @div class: 'rst-preview native-key-bindings', tabindex: -1, =>
-      @div class: 'buffer-1'
-      @div class: 'buffer-2'
 
   constructor: ({@editorId, filePath}) ->
     super
 
-    @buffer1 = @find('.buffer-1')
-    @buffer2 = @find('.buffer-2')
-    @buffer1.show()
-    @buffer2.hide()
     if @editorId?
       @resolveEditor(@editorId)
     else
@@ -72,7 +66,6 @@ class RstPreviewView extends ScrollView
       @subscribe(@editor.getBuffer(), 'contents-modified', changeHandler)
 
   renderRst: ->
-    @showLoading()
     if @file?
       @file.read().then (contents) => @renderRstText(contents)
     else if @editor?
@@ -84,14 +77,7 @@ class RstPreviewView extends ScrollView
     child = spawn('pandoc', ['--from', 'rst', '--to', 'html'])
     child.stdout.on 'data', (data) => textBuffer.push(data.toString())
     child.stdout.on 'close', =>
-      [buffer, altBuffer] = []
-      if @buffer1.isVisible()
-        [buffer, altBuffer] = [@buffer2, @buffer1]
-      else
-        [buffer, altBuffer] = [@buffer1, @buffer2]
-      html = @resolveImagePaths(@tokenizeCodeBlocks(textBuffer.join('\n')))
-      buffer.html(html).show()
-      altBuffer.hide()
+      @html(@resolveImagePaths(@tokenizeCodeBlocks(textBuffer.join('\n'))))
     child.stdin.write(text)
     child.stdin.end()
 
@@ -118,17 +104,9 @@ class RstPreviewView extends ScrollView
   showError: (result) ->
     failureMessage = result?.message
 
-    @buffer1.show()
-    @buffer2.hide()
-    @buffer1.html $$$ ->
+    @html $$$ ->
       @h2 'Previewing Failed'
       @h3 failureMessage if failureMessage?
-
-  showLoading: ->
-    @buffer1.show()
-    @buffer2.hide()
-    @buffer1.html $$$ ->
-      @div class: 'rst-spinner', 'Loading ReStructuredText\u2026'
 
   resolveImagePaths: (html) =>
     html = $(html)
