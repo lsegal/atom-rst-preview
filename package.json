@@ -8,6 +8,9 @@
   "engines": {
     "atom": "*"
   },
+  "activationEvents": [
+    "rst-preview:show"
+  ],
   "dependencies": {
     "fs-plus": "2.x",
     "pathwatcher": "0.16.0",
