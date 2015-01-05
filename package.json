@@ -13,7 +13,7 @@
   ],
   "dependencies": {
     "fs-plus": "2.x",
-    "pathwatcher": "0.16.0",
+    "pathwatcher": "2.x",
     "underscore-plus": "1.x"
   }
 }
