@@ -9,6 +9,7 @@ module.exports =
       'source.rst'
       'text.plain'
       'text.plain.null-grammar'
+      'text.restructuredtext'
     ]
 
   activate: ->

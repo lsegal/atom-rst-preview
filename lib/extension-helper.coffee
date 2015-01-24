@@ -11,6 +11,7 @@ extensionsByFenceName =
   'json': 'json'
   'less': 'less'
   'mustache': 'mustache'
+  'php': 'php'
   'python': 'py'
   'rb': 'rb'
   'ruby': 'rb'
