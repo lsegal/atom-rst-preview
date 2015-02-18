@@ -1,6 +1,6 @@
 {
   "name": "rst-preview",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "main": "./lib/rst-preview",
   "description": "Open a rendered version of the ReStructuredText in the current editor with `ctrl-shift-r`.",
   "repository": "https://github.com/lsegal/atom-rst-preview",
@@ -16,10 +16,10 @@
     "cheerio": "0.15.0",
     "fs-plus": "^2.0.0",
     "grim": "^1.0.0",
-    "highlights": "0.15.0",
-    "pathwatcher": "^2.0",
+    "highlights": "^1.0.0",
+    "pathwatcher": "^3.0",
     "roaster": "^1.1.2",
-    "temp": "^0.6.0",
+    "temp": "^0.8.1",
     "underscore-plus": "^1.0.0",
     "wrench": "^1.5.0"
   }
