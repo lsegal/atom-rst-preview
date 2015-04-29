@@ -1,6 +1,7 @@
 path = require 'path'
 {Emitter, Disposable, CompositeDisposable} = require 'atom'
 {$, $$$, ScrollView} = require 'atom-space-pen-views'
+Grim = require 'grim'
 _ = require 'underscore-plus'
 {File} = require 'pathwatcher'
 fs = require 'fs-plus'
@@ -47,11 +48,6 @@ class RstPreviewView extends ScrollView
 
   onDidChangeRst: (callback) ->
     @emitter.on 'did-change-rst', callback
-
-  on: (eventName) ->
-    if eventName is 'rst-preview:rst-changed'
-      Grim.deprecate("Use RstPreviewView::onDidChangeRst instead of the 'rst-preview:rst-changed' jQuery event")
-    super
 
   subscribeToFilePath: (filePath) ->
     @file = new File(filePath)
@@ -153,7 +149,7 @@ class RstPreviewView extends ScrollView
     else
       "Rst Preview"
 
-  getUri: ->
+  getURI: ->
     if @file?
       "rst-preview://#{@getPath()}"
     else
@@ -244,3 +240,9 @@ class RstPreviewView extends ScrollView
         codeBlock.append(EditorView.buildLineHtml({ tokens, text }))
 
     html
+
+  if Grim.includeDeprecatedAPIs
+    RstPreviewView::on = (eventName) ->
+      if eventName is 'rst-preview:rst-changed'
+        Grim.deprecate("Use RstPreviewView::onDidChangeMarkdown instead of the 'rst-preview:rst-changed' jQuery event")
+      super
