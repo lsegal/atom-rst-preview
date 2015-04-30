@@ -10,6 +10,6 @@ currently enabled for `.rst` files.
 
 This package requires [Pandoc][1] to run. You can install Pandoc from:
 
-https://code.google.com/p/pandoc/downloads/list
+https://github.com/jgm/pandoc/releases
 
 [1]: http://johnmacfarlane.net/pandoc/index.html
