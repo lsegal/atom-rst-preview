@@ -11,7 +11,7 @@
   box-sizing: border-box;
   padding: 20px;
 
-  :not(.editor-colors) > code {
+  :not(.atom-text-editor) > code {
     color: #333;
   }
 }
@@ -31,7 +31,7 @@
 // includes some GitHub Flavored Rst specific styling (like @mentions)
 .rst-preview {
   pre,
-  pre div.editor,
+  pre div.atom-text-editor,
   code,
   tt {
     font-size: 12px;
@@ -409,7 +409,7 @@
     border-radius:3px;
   }
 
-  pre.editor-colors {
+  pre.atom-text-editor::shadow {
     background: #eee;
     border: 1px solid darken(#eee, 10%);
   }

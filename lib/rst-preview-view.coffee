@@ -1,27 +1,35 @@
 path = require 'path'
-{$, $$$, EditorView, ScrollView} = require 'atom'
+{Emitter, Disposable, CompositeDisposable} = require 'atom'
+{$, $$$, ScrollView} = require 'atom-space-pen-views'
+Grim = require 'grim'
 _ = require 'underscore-plus'
 {File} = require 'pathwatcher'
+fs = require 'fs-plus'
 {extensionForFenceName} = require './extension-helper'
+
 
 module.exports =
 class RstPreviewView extends ScrollView
-  atom.deserializers.add(this)
-
-  @deserialize: (state) ->
-    new RstPreviewView(state)
-
   @content: ->
     @div class: 'rst-preview native-key-bindings', tabindex: -1, =>
 
   constructor: ({@editorId, filePath}) ->
     super
+    @emitter = new Emitter
+    @disposables = new CompositeDisposable
+
+  attached: ->
+    return if @isAttached
+    @isAttached = true
 
     if @editorId?
       @resolveEditor(@editorId)
     else
-      @file = new File(filePath)
-      @handleEvents()
+      if atom.workspace?
+        @subscribeToFilePath(@filePath)
+      else
+        @disposables.add atom.packages.onDidActivateInitialPackages =>
+          @subscribeToFilePath(@filePath)
 
   serialize: ->
     deserializer: 'RstPreviewView'
@@ -29,43 +37,92 @@ class RstPreviewView extends ScrollView
     editorId: @editorId
 
   destroy: ->
-    @unsubscribe()
+    @disposables.dispose()
+
+  onDidChangeTitle: (callback) ->
+    @emitter.on 'did-change-title', callback
+
+  onDidChangeModified: (callback) ->
+    # No op to suppress deprecation warning
+    new Disposable
+
+  onDidChangeRst: (callback) ->
+    @emitter.on 'did-change-rst', callback
+
+  subscribeToFilePath: (filePath) ->
+    @file = new File(filePath)
+    @emitter.emit 'did-change-title'
+    @handleEvents()
+    @renderRst()
 
   resolveEditor: (editorId) ->
     resolve = =>
       @editor = @editorForId(editorId)
-      @trigger 'title-changed' if @editor?
-      @handleEvents()
+
+      if @editor?
+        @emitter.emit 'did-change-title' if @editor?
+        @handleEvents()
+        @renderRst()
+      else
+        # The editor this preview was created for has been closed so close
+        # this preview since a preview cannot be rendered without an editor
+        @parents('.pane').view()?.destroyItem(this)
 
     if atom.workspace?
       resolve()
     else
-      atom.packages.once 'activated', =>
-        resolve()
-        @renderRst()
+      @disposables.add atom.packages.onDidActivateInitialPackages(resolve)
 
   editorForId: (editorId) ->
-    for editor in atom.workspace.getEditors()
+    for editor in atom.workspace.getTextEditors()
       return editor if editor.id?.toString() is editorId.toString()
     null
 
   handleEvents: ->
-    @subscribe atom.syntax, 'grammar-added grammar-updated', _.debounce((=> @renderRst()), 250)
-    @subscribe this, 'core:move-up', => @scrollUp()
-    @subscribe this, 'core:move-down', => @scrollDown()
+    @disposables.add atom.grammars.onDidAddGrammar => _.debounce((=> @renderRst()), 250)
+    @disposables.add atom.grammars.onDidUpdateGrammar _.debounce((=> @renderRst()), 250)
+
+    atom.commands.add @element,
+      'core:move-up': =>
+        @scrollUp()
+      'core:move-down': =>
+        @scrollDown()
+      'core:save-as': (event) =>
+        event.stopPropagation()
+        @saveAs()
+      'core:copy': (event) =>
+        event.stopPropagation() if @copyToClipboard()
+      'rst-preview:zoom-in': =>
+        zoomLevel = parseFloat(@css('zoom')) or 1
+        @css('zoom', zoomLevel + .1)
+      'rst-preview:zoom-out': =>
+        zoomLevel = parseFloat(@css('zoom')) or 1
+        @css('zoom', zoomLevel - .1)
+      'rst-preview:reset-zoom': =>
+        @css('zoom', 1)
 
     changeHandler = =>
       @renderRst()
-      pane = atom.workspace.paneForUri(@getUri())
+
+      # TODO: Remove paneForURI call when ::paneForItem is released
+      pane = atom.workspace.paneForItem?(this) ?  atom.workspace.paneForUri(@getUri())
       if pane? and pane isnt atom.workspace.getActivePane()
         pane.activateItem(this)
 
     if @file?
-      @subscribe(@file, 'contents-changed', changeHandler)
+      @disposables.add @file.onDidChange(changeHandler)
     else if @editor?
-      @subscribe(@editor.getBuffer(), 'contents-modified', changeHandler)
+      @disposables.add @editor.getBuffer().onDidStopChanging =>
+        changeHandler() if atom.config.get 'rst-preview.liveUpdate'
+      @disposables.add @editor.onDidChangePath => @emitter.emit 'did-change-title'
+      @disposables.add @editor.getBuffer().onDidSave =>
+        changeHandler() unless atom.config.get 'rst-preview.liveUpdate'
+      @disposables.add @editor.getBuffer().onDidReload =>
+        changeHandler() unless atom.config.get 'rst-preview.liveUpdate'
+
 
   renderRst: ->
+    @showLoading()
     if @file?
       @file.read().then (contents) => @renderRstText(contents)
     else if @editor?
@@ -74,12 +131,15 @@ class RstPreviewView extends ScrollView
   renderRstText: (text) ->
     textBuffer = []
     spawn = require('child_process').spawn
-    child = spawn('pandoc', ['--from', 'rst', '--to', 'html'])
+    child = spawn('pandoc', ['--from', 'rst', '--to', 'html', '--email-obfuscation=none'])
     child.stdout.on 'data', (data) => textBuffer.push(data.toString())
     child.stdout.on 'close', =>
       @html(@resolveImagePaths(@tokenizeCodeBlocks(textBuffer.join('\n'))))
     child.stdin.write(text)
     child.stdin.end()
+    @emitter.emit 'did-change-rst'
+    @loading = false
+
 
   getTitle: ->
     if @file?
@@ -89,7 +149,7 @@ class RstPreviewView extends ScrollView
     else
       "Rst Preview"
 
-  getUri: ->
+  getURI: ->
     if @file?
       "rst-preview://#{@getPath()}"
     else
@@ -101,12 +161,49 @@ class RstPreviewView extends ScrollView
     else if @editor?
       @editor.getPath()
 
+  showLoading: ->
+    @loading = true
+    @html $$$ ->
+      @div class: 'rst-spinner', 'Loading Rst\u2026'
+
   showError: (result) ->
     failureMessage = result?.message
 
     @html $$$ ->
-      @h2 'Previewing Failed'
+      @h2 'Previewing Rst Failed'
       @h3 failureMessage if failureMessage?
+
+  copyToClipboard: ->
+    return false if @loading
+
+    selection = window.getSelection()
+    selectedText = selection.toString()
+    selectedNode = selection.baseNode
+
+    # Use default copy event handler if there is selected text inside this view
+    return false if selectedText and selectedNode? and (@[0] is selectedNode or $.contains(@[0], selectedNode))
+
+    atom.clipboard.write(@[0].innerHTML)
+    true
+
+  saveAs: ->
+    return if @loading
+
+    filePath = @getPath()
+    if filePath
+      filePath += '.html'
+    else
+      filePath = 'untitled.rst.html'
+      if projectPath = atom.project.getPath()
+        filePath = path.join(projectPath, filePath)
+
+    if htmlFilePath = atom.showSaveDialogSync(filePath)
+      # Hack to prevent encoding issues
+      # https://github.com/atom/markdown-preview/issues/96
+      html = @[0].innerHTML.split('').join('')
+
+      fs.writeFileSync(htmlFilePath, html)
+      atom.workspace.open(htmlFilePath)
 
   resolveImagePaths: (html) =>
     html = $(html)
@@ -143,3 +240,9 @@ class RstPreviewView extends ScrollView
         codeBlock.append(EditorView.buildLineHtml({ tokens, text }))
 
     html
+
+  if Grim.includeDeprecatedAPIs
+    RstPreviewView::on = (eventName) ->
+      if eventName is 'rst-preview:rst-changed'
+        Grim.deprecate("Use RstPreviewView::onDidChangeMarkdown instead of the 'rst-preview:rst-changed' jQuery event")
+      super

@@ -1,2 +1,16 @@
-'.workspace':
-  'ctrl-R': 'rst-preview:show'
+'atom-workspace, atom-workspace atom-text-editor':
+  'ctrl-R': 'rst-preview:toggle'
+  
+'.platform-darwin .rst-preview':
+  'cmd-+': 'rst-preview:zoom-in'
+  'cmd-=': 'rst-preview:zoom-in'
+  'cmd--': 'rst-preview:zoom-out'
+  'cmd-_': 'rst-preview:zoom-out'
+  'cmd-0': 'rst-preview:reset-zoom'
+
+'.platform-win32 .rst-preview, .platform-linux .markdown-preview':
+  'ctrl-+': 'rst-preview:zoom-in'
+  'ctrl-=': 'rst-preview:zoom-in'
+  'ctrl--': 'rst-preview:zoom-out'
+  'ctrl-_': 'rst-preview:zoom-out'
+  'ctrl-0': 'rst-preview:reset-zoom'

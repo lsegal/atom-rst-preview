@@ -3,8 +3,16 @@
   'submenu': [
     'label': 'ReStructuredText'
     'submenu': [
-      'label': 'Preview Buffer'
-      'command': 'rst-preview:show'
+      'label': 'Toggle Preview'
+      'command': 'rst-preview:toggle'
     ]
   ]
 ]
+
+'context-menu':
+  '.rst-preview': [
+    {label: 'Copy As HTML', command: 'core:copy'}
+    {label: 'Save As HTML\u2026', command: 'core:save-as'}
+  ]
+  '.tree-view .file .name[data-name$=\\.rst]':
+    [{label: 'ReStructuredText Preview', command:  'rst-preview:preview-file'}]
