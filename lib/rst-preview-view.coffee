@@ -1,9 +1,8 @@
 path = require 'path'
-{Emitter, Disposable, CompositeDisposable} = require 'atom'
+{Emitter, Disposable, CompositeDisposable, File} = require 'atom'
 {$, $$$, ScrollView} = require 'atom-space-pen-views'
 Grim = require 'grim'
 _ = require 'underscore-plus'
-{File} = require 'pathwatcher'
 fs = require 'fs-plus'
 {extensionForFenceName} = require './extension-helper'
 
