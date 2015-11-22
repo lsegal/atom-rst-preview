@@ -26,7 +26,7 @@ If so please open an issue on the package spawning the process.
 This is a [current bug][2] in Atom.
 
 Until this atom bug is fixed, a workaround is to add the following config
-to the ~/.atom/init.coffee file the relaunch from the OSX dock:
+to the ~/.atom/init.coffee file the relaunch from then OSX dock:
 ```
 process.env.PATH = ["/usr/bin",
                     "/usr/local/bin",
