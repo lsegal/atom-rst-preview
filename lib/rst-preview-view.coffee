@@ -130,8 +130,10 @@ class RstPreviewView extends ScrollView
   renderRstText: (text) ->
     textBuffer = []
     spawn = require('child_process').spawn
-    child = spawn('pandoc', ['--from', 'rst', '--to', 'html', '--email-obfuscation=none'])
-    child.stdout.on 'data', (data) => textBuffer.push(data.toString())
+    child = spawn('python', ["#{__dirname}/rst2html.py"])
+    child.stdout.on 'data', (data) =>
+      console.log "got some data yo"
+      textBuffer.push(data.toString())
     child.stdout.on 'close', =>
       @html(@resolveImagePaths(@tokenizeCodeBlocks(textBuffer.join('\n'))))
     child.stdin.write(text)
