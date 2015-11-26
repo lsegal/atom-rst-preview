@@ -132,7 +132,6 @@ class RstPreviewView extends ScrollView
     spawn = require('child_process').spawn
     child = spawn('python', ["#{__dirname}/rst2html.py"])
     child.stdout.on 'data', (data) =>
-      console.log "got some data yo"
       textBuffer.push(data.toString())
     child.stdout.on 'close', =>
       @html(@resolveImagePaths(@tokenizeCodeBlocks(textBuffer.join('\n'))))
