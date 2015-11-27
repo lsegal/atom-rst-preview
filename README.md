@@ -7,3 +7,14 @@ It can be activated from the editor using the `ctrl-shift-r` key-binding and is
 currently enabled for `.rst` files.
 
 Uses docutils internally to render rst content to html.
+
+Requirements
+============
+
+Requires a python installation and the `docutils` and `pygments` packages to be installed.
+
+You can install the required packages using pip as follows:
+
+```
+pip install docutils pygments
+```
