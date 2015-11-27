@@ -131,6 +131,8 @@ class RstPreviewView extends ScrollView
     textBuffer = []
     spawn = require('child_process').spawn
     child = spawn('python', ["#{__dirname}/rst2html.py"])
+    child.stderr.on 'data', (data) =>
+      atom.notifications.addError(data.toString())
     child.stdout.on 'data', (data) =>
       textBuffer.push(data.toString())
     child.stdout.on 'close', =>
