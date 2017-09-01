@@ -93,7 +93,7 @@ module.exports =
   addPreviewForEditor: (editor) ->
     uri = @uriForEditor(editor)
     previousActivePane = atom.workspace.getActivePane()
-    atom.workspace.open(uri, split: 'right', searchAllPanes: true).done (rstPreviewView) ->
+    atom.workspace.open(uri, split: 'right', searchAllPanes: true).then (rstPreviewView) ->
       if isRstPreviewView(rstPreviewView)
         previousActivePane.activate()
 
