@@ -1,7 +1,7 @@
 # ReStructuredText Preview package
 
 Show the rendered HTML rst to the right of the current editor using
-`ctrl-shift-r`
+`ctrl-shift-r`.
 
 It can be activated from the editor using the `ctrl-shift-r` key-binding and is
 currently enabled for `.rst` files.
@@ -18,21 +18,20 @@ If launching Atom from the OSX dock rather than from the terminal, you might see
 /usr/local/bin is not loaded into the path causing pandoc not to be found.
 
 ```
-'pandoc' could not be spawned. 
-Is it installed and on your path? 
+'pandoc' could not be spawned.
+Is it installed and on your path?
 If so please open an issue on the package spawning the process.
 ```
 
 This is a [current bug][2] in Atom.
 
 Until this atom bug is fixed, a workaround is to add the following config
-to the ~/.atom/init.coffee file the relaunch from the OSX dock:
+to the ~/.atom/init.coffee file, then relaunch from the OSX dock:
 ```
 process.env.PATH = ["/usr/bin",
                     "/usr/local/bin",
                     ].join(":")
 ```
-
 
 [1]: http://johnmacfarlane.net/pandoc/index.html
 [2]: https://github.com/atom/atom/issues/6956
